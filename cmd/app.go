@@ -1,44 +1,25 @@
 package main
 
 import (
+	"back/internal/usecase/repo"
+	"back/pkg/postgre"
+	"context"
+	"fmt"
 	"log"
-	"sync"
 )
 
 func main() {
-	i := 0
-
-	for {
-		r1, r2 := 0, 0
-		x, y := 0, 0
-
-		wg := sync.WaitGroup{}
-		wg.Add(2)
-
-		go func() {
-			x = 1
-			r1 = y
-
-			wg.Done()
-		}()
-
-		go func() {
-			y = 1
-			r2 = x
-
-			wg.Done()
-		}()
-
-		wg.Wait()
-
-		if r1 == 0 && r2 == 0 {
-			log.Fatalf("on %d iteration program is broken!!!!!!!", i)
-		}
-
-		i++
-
-		if i%1000 == 0 {
-			log.Printf("%d interation passed", i)
-		}
+	p, err := postgre.New("postgres", "postgres", "telegram", "localhost", "5432")
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+
+	r := repo.NewUsers(p)
+
+	m, err := r.GetUserChatsWithLastMessage(context.Background(), "user1")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	fmt.Printf("%+v", m)
 }
